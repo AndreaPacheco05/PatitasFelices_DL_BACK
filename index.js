@@ -11,3 +11,6 @@ app.get("/home", (req, res) => {
     res.send("Hello World Express Js")
 })
 
+app.get("/tienda", (req, res) => {
+    
+})

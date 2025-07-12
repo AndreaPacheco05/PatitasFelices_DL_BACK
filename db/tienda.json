@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "nombre": "Croquetas para perro adulto - Pollo 10kg",
+    "precio": 18990,
+    "descripcion": "Alimento seco premium para perros adultos, sabor a pollo. Fortificado con vitaminas y minerales.",
+    "categoria": "Alimento",
+    "stock": 25,
+    "marca": "DogPlus",
+    "peso": "10kg",
+    "imagen": "https://images.pexels.com/photos/5731863/pexels-photo-5731863.jpeg",
+    "disponibilidad": true
+  },
+  {
+    "id": 2,
+    "nombre": "Rascador para gato con cuerda de sisal",
+    "precio": 14990,
+    "descripcion": "Rascador vertical con base de madera y poste recubierto en sisal. Ideal para afilar las uñas.",
+    "categoria": "Juguete",
+    "stock": 12,
+    "marca": "GatoFeliz",
+    "material": "Madera y sisal",
+    "imagen": "https://images.pexels.com/photos/3777622/pexels-photo-3777622.jpeg",
+    "disponibilidad": false
+  },
+  {
+    "id": 3,
+    "nombre": "Shampoo hipoalergénico para perros y gatos 500ml",
+    "precio": 6990,
+    "descripcion": "Shampoo suave con avena y aloe vera para pieles sensibles.",
+    "categoria": "Higiene",
+    "stock": 40,
+    "marca": "PetClean",
+    "contenido": "500ml",
+    "imagen": "https://images.pexels.com/photos/4587997/pexels-photo-4587997.jpeg",
+    "disponibilidad": false
+  },
+  {
+    "id": 4,
+    "nombre": "Collar antipulgas para gatos",
+    "precio": 5990,
+    "descripcion": "Protección continua contra pulgas y garrapatas por hasta 3 meses.",
+    "categoria": "Salud",
+    "stock": 20,
+    "marca": "VetProtect",
+    "duracion": "3 meses",
+    "imagen": "https://images.pexels.com/photos/5731863/pexels-photo-5731863.jpeg",
+    "disponibilidad": true
+  },
+  {
+    "id": 5,
+    "nombre": "Bebedero automático 2L para perros y gatos",
+    "precio": 12990,
+    "descripcion": "Fuente de agua continua para mantener hidratadas a tus mascotas.",
+    "categoria": "Accesorio",
+    "stock": 8,
+    "marca": "HydroPet",
+    "capacidad": "2L",
+    "imagen": "https://images.pexels.com/photos/3777622/pexels-photo-3777622.jpeg",
+    "disponibilidad": false
+  }
+]
