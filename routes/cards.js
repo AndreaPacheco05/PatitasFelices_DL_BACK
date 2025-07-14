@@ -14,14 +14,14 @@ const {
     eliminarFavorito,
 } = require("../consultas");
 
-router.post("/articulos", verificarToken, upload.single("img"), crearArticulo);         // POST /articulos
-router.get("/articulos", obtenerArticulos);                                             // GET /articulos
-router.get("/articulos/:id", obtenerArticuloPorId);                                     // GET /articulos/:id
-router.put("/articulos/:id", verificarToken, upload.single("img"), actualizarArticulo); // PUT /articulos/:id
-router.delete("/articulos/:id", verificarToken, eliminarArticulo);                      // DELETE /articulos/:id
+router.post("/articulos", verificarToken, upload.single("img"), crearArticulo);         
+router.get("/articulos", obtenerArticulos);                                             
+router.get("/articulos/:id", obtenerArticuloPorId);                                     
+router.put("/articulos/:id", verificarToken, upload.single("img"), actualizarArticulo); 
+router.delete("/articulos/:id", verificarToken, eliminarArticulo);                      
 
-router.post("/favoritos", verificarToken, agregarFavorito);           // POST /favoritos
-router.get("/favoritos", verificarToken, obtenerFavoritos);           // GET /favoritos
-router.delete("/favoritos/:id", verificarToken, eliminarFavorito);    // DELETE /favoritos/:id
+router.post("/favoritos", verificarToken, agregarFavorito);           
+router.get("/favoritos", verificarToken, obtenerFavoritos);           
+router.delete("/favoritos/:id", verificarToken, eliminarFavorito);    
 
 module.exports = router;

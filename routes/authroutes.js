@@ -13,6 +13,6 @@ const {
 router.post("/usuarios", upload.single("img"), registrarUsuario); 
 router.post("/login", loginUsuario);                              
 router.get("/usuarios/:id", verificarToken, obtenerUsuario);      
-router.put("/usuarios/:id", verificarToken, upload.single("img"), actualizarUsuario); // PUT /usuarios/:id
+router.put("/usuarios/:id", verificarToken, upload.single("img"), actualizarUsuario);
 
 module.exports = router;
