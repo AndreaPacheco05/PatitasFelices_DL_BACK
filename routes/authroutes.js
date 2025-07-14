@@ -27,7 +27,8 @@ router.post("/registrar", async (req, res) => {
       "INSERT INTO usuarios (nombre, email, password, direccion, telefono, imgPerfil_url) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
       [nombre, email, hash, direccion, telefono, imgPerfil_url]
     );
-    const token = jwt.sign({ email }, SECRET_KEY, { expiresIn: "1h" });
+    const user = result.rows[0]
+    const token = jwt.sign({id: user.id, email: user.email }, SECRET_KEY, { expiresIn: "1h" });
     res.json({ token, email });
   } catch (error) {
     res.status(500).json({ error: "Error al registrar usuario" });
@@ -47,7 +48,7 @@ router.post("/login",async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ error: "Contraseña incorrecta" });
 
-    const token = jwt.sign({ email: user.email }, SECRET_KEY, {
+    const token = jwt.sign({id: user.id, email: user.email }, SECRET_KEY, {
       expiresIn: "1h",
     });
     res.json({ token, email });

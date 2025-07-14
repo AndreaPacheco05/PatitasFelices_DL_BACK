@@ -4,7 +4,7 @@ const pool = new Pool({
   user: "postgres",
   host: "localhost",
   database: "patitasfelices",
-  password: "0407AE",
+  password: "tiago123",
   port: 5432,
 });
 
@@ -47,8 +47,12 @@ export const modificarUsuario = async (
 };
 
 export const agregarPublicacion = async (req, res) => {
-    const { articulos, descripcion, precio, disponibilidad, img_url } = req.body;
-    const propietario_ID = req.usuario.id; 
+  const { articulos, descripcion, precio, disponibilidad, img_url } = req.body;
+  console.log("Token decodificado:", req.user)
+  const propietario_ID = req.user.id; 
+  if (!propietario_ID) {
+    return res.status(401).json({error: "No se encontró el ID del usuario en el token"})
+  }
   
     try {
       const consulta = `
@@ -70,3 +74,24 @@ export const agregarPublicacion = async (req, res) => {
       res.status(500).json({ error: "Error al publicar el producto" });
     }
   };
+ export const agregarAFavorito = async (interesado_ID, articulo_ID) => {
+  const consulta = `
+    INSERT INTO FAVORITOS (interesado_ID, articulo_ID)
+    VALUES ($1, $2)
+    RETURNING *;
+  `;
+  const values = [interesado_ID, articulo_ID];
+  const result = await pool.query(consulta, values);
+  return result.rows[0];
+};
+
+export const obtenerFavoritosPorUsuario = async (interesado_ID) => {
+  const query = `
+    SELECT p.*
+    FROM FAVORITOS f
+    JOIN POSTS_PRODUCTOS p ON f.articulo_ID = p.id
+    WHERE f.interesado_ID = $1
+  `;
+  const { rows } = await pool.query(query, [interesado_ID]);
+  return rows;
+};
