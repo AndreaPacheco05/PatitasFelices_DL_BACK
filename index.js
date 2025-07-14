@@ -5,6 +5,14 @@ const app = express();
 const authRoutes = require("./routes/authroutes");
 const cardsRoutes = require("./routes/cards");
 
+const fs = require("fs");
+const path = require("path");
+
+const uploadPath = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadPath)) {
+    fs.mkdirSync(uploadPath);
+}
+
 app.use(cors());
 app.use(express.json());
 

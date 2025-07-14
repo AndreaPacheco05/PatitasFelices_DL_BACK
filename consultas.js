@@ -1,4 +1,4 @@
-import { Pool } from "pg";
+const { Pool } = require("pg");
 
 const pool = new Pool({
   user: "postgres",
@@ -8,7 +8,7 @@ const pool = new Pool({
   port: 5432,
 });
 
-export const modificarUsuario = async (
+const modificarUsuario = async (
   id,
   nombre,
   email,
@@ -23,16 +23,7 @@ export const modificarUsuario = async (
       WHERE id = $7
       RETURNING *;
     `;
-
-  const values = [
-    nombre,
-    email,
-    password,
-    direccion,
-    telefono,
-    imgPerfil_url,
-    id,
-  ];
+  const values = [nombre, email, password, direccion, telefono, imgPerfil_url, id];
 
   const { rowCount, rows } = await pool.query(consulta, values);
 
@@ -46,27 +37,31 @@ export const modificarUsuario = async (
   return rows[0];
 };
 
-export const agregarPublicacion = async (req, res) => {
-    const { articulos, descripcion, precio, disponibilidad, img_url } = req.body;
-    const propietario_ID = req.usuario.id; 
-  
-    try {
-      const consulta = `
-        INSERT INTO POSTS_PRODUCTOS 
-        (ARTICULOS, DESCRIPCION, PRECIO, DISPONIBILIDAD, propietario_ID, fecha_publicacion, img_url) 
-        VALUES ($1, $2, $3, $4, $5, NOW(), $6)
-        RETURNING *;
-      `;
-  
-      const values = [articulos, descripcion, precio, disponibilidad, propietario_ID, img_url];
-      const { rows } = await pool.query(consulta, values);
-  
-      res.status(201).json({
-        mensaje: "Producto publicado exitosamente",
-        producto: rows[0],
-      });
-    } catch (error) {
-      console.error("Error al crear producto:", error);
-      res.status(500).json({ error: "Error al publicar el producto" });
-    }
-  };
+const agregarPublicacion = async (req, res) => {
+  const { articulos, descripcion, precio, disponibilidad, img_url } = req.body;
+  const propietario_ID = req.usuario.id;
+
+  try {
+    const consulta = `
+      INSERT INTO posts_productos 
+      (articulos, descripcion, precio, disponibilidad, propietario_ID, fecha_publicacion, img_url) 
+      VALUES ($1, $2, $3, $4, $5, NOW(), $6)
+      RETURNING *;
+    `;
+    const values = [articulos, descripcion, precio, disponibilidad, propietario_ID, img_url];
+    const { rows } = await pool.query(consulta, values);
+
+    res.status(201).json({
+      mensaje: "Producto publicado exitosamente",
+      producto: rows[0],
+    });
+  } catch (error) {
+    console.error("Error al crear producto:", error);
+    res.status(500).json({ error: "Error al publicar el producto" });
+  }
+};
+
+module.exports = {
+  modificarUsuario,
+  agregarPublicacion,
+};

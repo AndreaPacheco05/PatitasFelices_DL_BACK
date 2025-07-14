@@ -1,23 +1,27 @@
 const express = require("express");
 const router = express.Router();
-const { Pool } = require("pg");
+const multer = require("multer");
+const upload = multer({ dest: "uploads/" });
+const { verificarToken } = require("../middleware");
+const {
+    crearArticulo,
+    obtenerArticulos,
+    obtenerArticuloPorId,
+    actualizarArticulo,
+    eliminarArticulo,
+    agregarFavorito,
+    obtenerFavoritos,
+    eliminarFavorito,
+} = require("../consultas");
 
-//aqui deben cambiar a su usuario y contraseña para que les funcione, este es el mío
-const pool = new Pool({
-    user: "postgres",
-    host: "localhost",
-    database: "patitasfelices",
-    password: "0407AE",
-    port: 5432,
-});
+router.post("/articulos", verificarToken, upload.single("img"), crearArticulo);         // POST /articulos
+router.get("/articulos", obtenerArticulos);                                             // GET /articulos
+router.get("/articulos/:id", obtenerArticuloPorId);                                     // GET /articulos/:id
+router.put("/articulos/:id", verificarToken, upload.single("img"), actualizarArticulo); // PUT /articulos/:id
+router.delete("/articulos/:id", verificarToken, eliminarArticulo);                      // DELETE /articulos/:id
 
-router.get("/", async (req, res) => {
-    try {
-        const result = await pool.query("SELECT * FROM productos");
-        res.json(result.rows);
-    } catch (err) {
-        res.status(500).json({ error: "Error al obtener productos" });
-    }
-});
+router.post("/favoritos", verificarToken, agregarFavorito);           // POST /favoritos
+router.get("/favoritos", verificarToken, obtenerFavoritos);           // GET /favoritos
+router.delete("/favoritos/:id", verificarToken, eliminarFavorito);    // DELETE /favoritos/:id
 
 module.exports = router;
