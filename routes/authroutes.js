@@ -4,25 +4,28 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { Pool } = require("pg");
 const SECRET_KEY = require("../secretKey");
+const { verificarToken } = require("../middlewares")
+const {agregarPublicacion} = require("../consultas")
 
 //aqui deben cambiar a su usuario y contraseña para que les funcione, este es el mío
 const pool = new Pool({
   user: "postgres",
   host: "localhost",
   database: "patitasfelices",
-  password: "0407AE",
+  password: "tiago123",
   port: 5432,
 });
 
 router.post("/registrar", async (req, res) => {
-  const { nombre, email, password, direccion, telefono, imgperfil_url } =
+  const { nombre, email, password, direccion, telefono, imgPerfil_url } =
     req.body;
+ /*  console.log(req.body) */
   const hash = await bcrypt.hash(password, 10);
 
   try {
     const result = await pool.query(
-      "INSERT INTO usuarios (nombre, email, password, direccion, telefono, imgperfil_url) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-      [nombre, email, hash, direccion, telefono, imgperfil_url]
+      "INSERT INTO usuarios (nombre, email, password, direccion, telefono, imgPerfil_url) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+      [nombre, email, hash, direccion, telefono, imgPerfil_url]
     );
     const token = jwt.sign({ email }, SECRET_KEY, { expiresIn: "1h" });
     res.json({ token, email });
@@ -53,15 +56,27 @@ router.post("/login",async (req, res) => {
   }
 });
 
-router.get("/me", (req, res) => {
+router.get("/me", async (req, res) => {
   const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: "Token no proporcionado" });
+  if (!auth) {
+    console.log("token no proporcionado")
+    return res.status(401).json({ error: "Token no proporcionado" });
+  }
+    
 
   const token = auth.split(" ")[1];
   try {
     const data = jwt.verify(token, SECRET_KEY);
-    res.json({ email: data.email });
+    console.log("token decodificado", data)
+    const result = await pool.query("SELECT nombre, email, direccion, telefono, imgPerfil_url FROM USUARIOS WHERE email = $1",
+      [data.email])
+    if (result.rows.length === 0) {
+      console.log("Usuario no encontrado")
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+  res.json(result.rows[0])
   } catch (error) {
+    console.log("Error en /me", error.message)
     res.status(403).json({ error: "Token inválido" });
   }
 });
