@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 const { Pool } = require("pg");
 const SECRET_KEY = require("../secretKey");
 const { verificarToken } = require("../middlewares")
-const {agregarPublicacion} = require("../consultas")
+const {agregarPublicacion, modificarUsuario} = require("../consultas")
 
 //aqui deben cambiar a su usuario y contraseña para que les funcione, este es el mío
 const pool = new Pool({
@@ -68,7 +68,7 @@ router.get("/me", async (req, res) => {
   const token = auth.split(" ")[1];
   try {
     const data = jwt.verify(token, SECRET_KEY);
-    console.log("token decodificado", data)
+    /* console.log("token decodificado", data) */
     const result = await pool.query("SELECT nombre, email, direccion, telefono, imgPerfil_url FROM USUARIOS WHERE email = $1",
       [data.email])
     if (result.rows.length === 0) {
@@ -84,14 +84,14 @@ router.get("/me", async (req, res) => {
 
 router.put("/usuarios/:id", verificarToken, async (req, res) => {
     const { id } = req.params;
-    const { nombre, email, password, direccion, telefono, imgperfil_url } = req.body;
+    const { nombre, email, direccion, telefono, imgperfil_url } = req.body;
   
     if (parseInt(id) !== req.usuario.id) {
       return res.status(403).json({ error: "No tienes permiso para modificar este usuario" });
     }
   
     try {
-      const usuarioActualizado = await modificarUsuario(id, nombre, email, password, direccion, telefono, imgperfil_url);
+      const usuarioActualizado = await modificarUsuario(id, nombre, email, direccion, telefono, imgperfil_url);
       res.status(200).json({ mensaje: "Usuario actualizado correctamente", usuario: usuarioActualizado });
     } catch ({ code, message }) {
       res.status(code || 500).json({ error: message });

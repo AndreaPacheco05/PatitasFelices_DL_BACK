@@ -12,22 +12,20 @@ export const modificarUsuario = async (
   id,
   nombre,
   email,
-  password,
   direccion,
   telefono,
   imgPerfil_url
 ) => {
   const consulta = `
       UPDATE usuarios 
-      SET nombre = $1, email = $2, password = $3, direccion = $4, telefono = $5, imgPerfil_url = $6 
-      WHERE id = $7
+      SET nombre = $1, email = $2, direccion = $3, telefono = $4, imgPerfil_url = $5 
+      WHERE id = $6
       RETURNING *;
     `;
 
   const values = [
     nombre,
     email,
-    password,
     direccion,
     telefono,
     imgPerfil_url,
@@ -48,7 +46,7 @@ export const modificarUsuario = async (
 
 export const agregarPublicacion = async (req, res) => {
   const { articulos, descripcion, precio, disponibilidad, img_url } = req.body;
-  console.log("Token decodificado:", req.user)
+/*   console.log("Token decodificado:", req.user) */
   const propietario_ID = req.user.id; 
   if (!propietario_ID) {
     return res.status(401).json({error: "No se encontró el ID del usuario en el token"})
