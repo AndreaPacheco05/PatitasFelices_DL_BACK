@@ -11,7 +11,59 @@ const pool = new Pool({
   port: 5432,
 });
 
-const modificarUsuario = async (id, nombre, email, password, direccion, telefono, imagenFile) => {
+const registrarUsuario = async (req, res) => {
+  const { nombre, email, password, direccion, telefono, imgperfil_url } =
+    req.body;
+
+  try {
+    const hash = await bcrypt.hash(password, 10);
+
+    const result = await pool.query(
+      "INSERT INTO usuarios (nombre, email, password, direccion, telefono, imgperfil_url) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+      [nombre, email, hash, direccion, telefono, imgperfil_url]
+    );
+
+    const token = jwt.sign({ email }, SECRET_KEY, { expiresIn: "1h" });
+    res.json({ token, email });
+  } catch (error) {
+    console.error("Error al registrar usuario:", error);
+    res.status(500).json({ error: "Error al registrar usuario" });
+  }
+};
+
+const loginUsuario = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const result = await pool.query("SELECT * FROM usuarios WHERE email = $1", [
+      email,
+    ]);
+    const user = result.rows[0];
+
+    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ error: "Contraseña incorrecta" });
+
+    const token = jwt.sign({ email: user.email }, SECRET_KEY, {
+      expiresIn: "1h",
+    });
+    res.json({ token, email });
+  } catch (error) {
+    console.error("Error en login:", error);
+    res.status(500).json({ error: "Error en login" });
+  }
+};
+
+const modificarUsuario = async (
+  id,
+  nombre,
+  email,
+  password,
+  direccion,
+  telefono,
+  imagenFile
+) => {
   let img_url = null;
 
   if (imagenFile) {
@@ -23,8 +75,10 @@ const modificarUsuario = async (id, nombre, email, password, direccion, telefono
 
   const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
 
-
-  const usuarioActual = await pool.query("SELECT * FROM usuarios WHERE id = $1", [id]);
+  const usuarioActual = await pool.query(
+    "SELECT * FROM usuarios WHERE id = $1",
+    [id]
+  );
   if (usuarioActual.rowCount === 0) {
     throw { code: 404, message: `Usuario con id ${id} no existe.` };
   }
@@ -73,7 +127,15 @@ const agregarPublicacion = async (req, res) => {
       RETURNING *;
     `;
 
-    const values = [titulo, descripcion, categoria, Number(precio), true, propietario_ID, img_url];
+    const values = [
+      titulo,
+      descripcion,
+      categoria,
+      Number(precio),
+      true,
+      propietario_ID,
+      img_url,
+    ];
     const { rows } = await pool.query(consulta, values);
 
     res.status(201).json({
@@ -89,4 +151,6 @@ const agregarPublicacion = async (req, res) => {
 module.exports = {
   modificarUsuario,
   agregarPublicacion,
+  registrarUsuario,
+  loginUsuario,
 };
