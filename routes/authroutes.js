@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const multer = require("multer");
-const upload = multer({ dest: "uploads/" });
-const { verificarToken } = require("../middleware");
+const { verificarToken } = require("../middlewares/authmiddlewares");
+const upload = require("../middlewares/uploadmiddlewares");
 const {
   registrarUsuario,
   loginUsuario,
