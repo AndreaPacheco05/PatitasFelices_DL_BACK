@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { verificarToken } = require("../middlewares/authmiddlewares");
+const { verificarToken } = require("./middlewares/authmiddlewares");
 const upload = require("../middlewares/uploadmiddlewares");
 const {
   registrarUsuario,
