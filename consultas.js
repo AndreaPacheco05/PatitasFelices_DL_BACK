@@ -6,7 +6,7 @@ const pool = new Pool({
   user: "postgres",
   host: "localhost",
   database: "patitasfelices",
-  password: "0407AE",
+  password: "tiago123",
   port: 5432,
 });
 
@@ -22,7 +22,9 @@ const registrarUsuario = async (req, res) => {
     `;
     const values = [nombre, email, password, direccion, telefono, imgPerfil_url];
     const { rows } = await pool.query(consulta, values);
-    res.status(201).json(rows[0]);
+    const token = jwt.sign({ id: rows[0].id }, secretKey, { expiresIn: "2h" });
+
+    res.status(201).json({ token, user: rows[0] });
   } catch (error) {
     console.error("Error al registrar usuario:", error);
     res.status(500).json({ error: "Error al registrar usuario" });

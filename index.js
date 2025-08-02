@@ -23,6 +23,6 @@ app.get("/home", (req, res) => {
     res.send("Hello World Express Js");
 });
 
-app.listen(3000, () => console.log("¡Servidor encendido en http://localhost:3000!"));
+app.listen(5000, () => console.log("¡Servidor encendido en http://localhost:5000!"));
 
 module.exports = app; 
