@@ -130,12 +130,22 @@ const obtenerArticulos = async (req, res) => {
 const obtenerArticuloPorId = async (req, res) => {
   const { id } = req.params;
   try {
-    const { rows } = await pool.query("SELECT * FROM posts_productos WHERE id = $1", [id]);
+      const { rows } = await pool.query(
+        `
+      SELECT 
+        posts_productos.*, 
+        usuarios.nombre AS nombre_usuario
+      FROM posts_productos
+      JOIN usuarios ON posts_productos.propietario_id = usuarios.id
+      WHERE posts_productos.id = $1
+    `,
+        [id]
+      );
 
     if (rows.length === 0) {
       return res.status(404).json({ error: "Artículo no encontrado" });
     }
-
+console.log("Artículo obtenido:", rows[0]);
     res.status(200).json(rows[0]);
   } catch (error) {
     console.error("Error al obtener artículo:", error);
