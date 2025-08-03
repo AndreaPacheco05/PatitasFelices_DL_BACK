@@ -1,6 +1,7 @@
 const { Pool } = require("pg");
 const jwt = require("jsonwebtoken");
 const secretKey = require("./secretKey");
+const bcrypt = require("bcrypt");
 
 const pool = new Pool({
   user: "postgres",
@@ -14,21 +15,47 @@ const registrarUsuario = async (req, res) => {
   const { nombre, email, password, direccion, telefono } = req.body;
   const imgPerfil_url = req.file ? req.file.filename : null;
 
+  if (!nombre || !email || !password) {
+    return res
+      .status(400)
+      .json({ error: "Nombre, email y contraseña son obligatorios." });
+  }
+
   try {
+    const existe = await pool.query(
+      "SELECT id FROM usuarios WHERE email = $1",
+      [email]
+    );
+    if (existe.rows.length > 0) {
+      return res.status(409).json({ error: "El email ya está registrado." });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const consulta = `
       INSERT INTO usuarios (nombre, email, password, direccion, telefono, imgPerfil_url)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *;
     `;
-    const values = [nombre, email, hashedPassword, direccion, telefono, imgPerfil_url];
+    const values = [
+      nombre,
+      email,
+      hashedPassword,
+      direccion,
+      telefono,
+      imgPerfil_url,
+    ];
     const { rows } = await pool.query(consulta, values);
-    const token = jwt.sign({ id: rows[0].id }, secretKey, { expiresIn: "2h" });
+    const usuario = rows[0];
 
-    res.status(201).json({ token, user: rows[0] });
+    const token = jwt.sign({ id: usuario.id }, secretKey, { expiresIn: "2h" });
+
+    const { password: _, ...userWithoutPassword } = usuario;
+
+    return res.status(201).json({ token, user: userWithoutPassword });
   } catch (error) {
     console.error("Error al registrar usuario:", error);
-    res.status(500).json({ error: "Error al registrar usuario" });
+    return res.status(500).json({ error: "Error al registrar usuario" });
   }
 };
 
@@ -55,7 +82,9 @@ const obtenerUsuario = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const { rows } = await pool.query("SELECT * FROM usuarios WHERE id = $1", [id]);
+    const { rows } = await pool.query("SELECT * FROM usuarios WHERE id = $1", [
+      id,
+    ]);
 
     if (rows.length === 0) {
       return res.status(404).json({ error: "Usuario no encontrado" });
@@ -68,32 +97,41 @@ const obtenerUsuario = async (req, res) => {
   }
 };
 
-const modificarUsuario = async (
-  id,
-  nombre,
-  email,
-  password,
-  direccion,
-  telefono,
-  imgPerfil_url
-) => {
-  const consulta = `
-    UPDATE usuarios 
-    SET nombre = $1, email = $2, password = $3, direccion = $4, telefono = $5, imgPerfil_url = $6 
-    WHERE id = $7
-    RETURNING *;
-  `;
-  const values = [nombre, email, password, direccion, telefono, imgPerfil_url, id];
-  const { rowCount, rows } = await pool.query(consulta, values);
+const modificarUsuario = async (req, res) => {
+  const { id } = req.params;
+  const { nombre, email, password, direccion, telefono } = req.body;
+  const imgPerfil_url = req.file ? req.file.filename : null;
 
-  if (rowCount === 0) {
-    throw {
-      code: 404,
-      message: `No se consiguió ningún usuario con id ${id} para modificar`,
-    };
+  try {
+    const consulta = `
+      UPDATE usuarios 
+      SET nombre = $1, email = $2, password = $3, direccion = $4, telefono = $5, imgPerfil_url = $6 
+      WHERE id = $7
+      RETURNING *;
+    `;
+    const values = [
+      nombre,
+      email,
+      password,
+      direccion,
+      telefono,
+      imgPerfil_url,
+      id,
+    ];
+
+    const { rowCount, rows } = await pool.query(consulta, values);
+
+    if (rowCount === 0) {
+      return res.status(404).json({
+        error: `No se consiguió ningún usuario con id ${id} para modificar`,
+      });
+    }
+
+    res.json(rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al modificar usuario" });
   }
-
-  return rows[0];
 };
 
 const crearArticulo = async (req, res) => {
@@ -108,7 +146,14 @@ const crearArticulo = async (req, res) => {
       VALUES ($1, $2, $3, $4, $5, NOW(), $6)
       RETURNING *;
     `;
-    const values = [articulos, descripcion, precio, disponibilidad, propietario_ID, img_url];
+    const values = [
+      articulos,
+      descripcion,
+      precio,
+      disponibilidad,
+      propietario_ID,
+      img_url,
+    ];
     const { rows } = await pool.query(consulta, values);
     res.status(201).json(rows[0]);
   } catch (error) {
@@ -119,7 +164,9 @@ const crearArticulo = async (req, res) => {
 
 const obtenerArticulos = async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT * FROM posts_productos ORDER BY fecha_publicacion DESC");
+    const { rows } = await pool.query(
+      "SELECT * FROM posts_productos ORDER BY fecha_publicacion DESC"
+    );
     res.status(200).json(rows);
   } catch (error) {
     console.error("Error al obtener artículos:", error);
@@ -130,8 +177,8 @@ const obtenerArticulos = async (req, res) => {
 const obtenerArticuloPorId = async (req, res) => {
   const { id } = req.params;
   try {
-      const { rows } = await pool.query(
-        `
+    const { rows } = await pool.query(
+      `
       SELECT 
         posts_productos.*, 
         usuarios.nombre AS nombre_usuario
@@ -139,13 +186,13 @@ const obtenerArticuloPorId = async (req, res) => {
       JOIN usuarios ON posts_productos.propietario_id = usuarios.id
       WHERE posts_productos.id = $1
     `,
-        [id]
-      );
+      [id]
+    );
 
     if (rows.length === 0) {
       return res.status(404).json({ error: "Artículo no encontrado" });
     }
-console.log("Artículo obtenido:", rows[0]);
+    console.log("Artículo obtenido:", rows[0]);
     res.status(200).json(rows[0]);
   } catch (error) {
     console.error("Error al obtener artículo:", error);
@@ -165,11 +212,20 @@ const actualizarArticulo = async (req, res) => {
       WHERE id = $6
       RETURNING *;
     `;
-    const values = [articulos, descripcion, precio, disponibilidad, img_url, id];
+    const values = [
+      articulos,
+      descripcion,
+      precio,
+      disponibilidad,
+      img_url,
+      id,
+    ];
     const { rows, rowCount } = await pool.query(consulta, values);
 
     if (rowCount === 0) {
-      return res.status(404).json({ error: "Artículo no encontrado para actualizar" });
+      return res
+        .status(404)
+        .json({ error: "Artículo no encontrado para actualizar" });
     }
 
     res.status(200).json(rows[0]);
@@ -182,10 +238,15 @@ const actualizarArticulo = async (req, res) => {
 const eliminarArticulo = async (req, res) => {
   const { id } = req.params;
   try {
-    const { rowCount } = await pool.query("DELETE FROM posts_productos WHERE id = $1", [id]);
+    const { rowCount } = await pool.query(
+      "DELETE FROM posts_productos WHERE id = $1",
+      [id]
+    );
 
     if (rowCount === 0) {
-      return res.status(404).json({ error: "Artículo no encontrado para eliminar" });
+      return res
+        .status(404)
+        .json({ error: "Artículo no encontrado para eliminar" });
     }
 
     res.status(200).json({ mensaje: "Artículo eliminado correctamente" });
@@ -239,7 +300,9 @@ const eliminarFavorito = async (req, res) => {
     const { rowCount } = await pool.query(consulta, [id]);
 
     if (rowCount === 0) {
-      return res.status(404).json({ error: "Favorito no encontrado para eliminar" });
+      return res
+        .status(404)
+        .json({ error: "Favorito no encontrado para eliminar" });
     }
 
     res.status(200).json({ mensaje: "Favorito eliminado correctamente" });
