@@ -18,6 +18,8 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/cards", cardsRoutes);
+app.use("/uploads", express.static("uploads"));
+
 
 app.get("/home", (req, res) => {
     res.send("Hello World Express Js");
