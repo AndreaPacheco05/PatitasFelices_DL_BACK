@@ -63,15 +63,25 @@ const loginUsuario = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const consulta = `SELECT * FROM usuarios WHERE email = $1 AND password = $2`;
-    const { rows } = await pool.query(consulta, [email, password]);
+    const consulta = `SELECT * FROM usuarios WHERE email = $1`;
+    const { rows } = await pool.query(consulta, [email]);
 
     if (rows.length === 0) {
       return res.status(401).json({ error: "Credenciales inválidas" });
     }
 
-    const token = jwt.sign({ id: rows[0].id }, secretKey, { expiresIn: "2h" });
-    res.status(200).json({ token, user: rows[0] });
+    const user = rows[0];
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Credenciales inválidas" });
+    }
+
+    const token = jwt.sign({ id: user.id }, secretKey, { expiresIn: "2h" });
+
+    const { password: _, ...userWithoutPassword } = user;
+
+    res.status(200).json({ token, user: userWithoutPassword });
   } catch (error) {
     console.error("Error en login:", error);
     res.status(500).json({ error: "Error al iniciar sesión" });
