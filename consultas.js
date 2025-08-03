@@ -6,7 +6,7 @@ const pool = new Pool({
   user: "postgres",
   host: "localhost",
   database: "patitasfelices",
-  password: "tiago123",
+  password: "postgre",
   port: 5432,
 });
 
@@ -15,12 +15,13 @@ const registrarUsuario = async (req, res) => {
   const imgPerfil_url = req.file ? req.file.filename : null;
 
   try {
+    const hashedPassword = await bcrypt.hash(password, 10);
     const consulta = `
       INSERT INTO usuarios (nombre, email, password, direccion, telefono, imgPerfil_url)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *;
     `;
-    const values = [nombre, email, password, direccion, telefono, imgPerfil_url];
+    const values = [nombre, email, hashedPassword, direccion, telefono, imgPerfil_url];
     const { rows } = await pool.query(consulta, values);
     const token = jwt.sign({ id: rows[0].id }, secretKey, { expiresIn: "2h" });
 
