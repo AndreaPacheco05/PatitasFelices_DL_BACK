@@ -1,17 +1,14 @@
+require("dotenv").config();
 const { Pool } = require("pg");
 const jwt = require("jsonwebtoken");
 const secretKey = require("./secretKey");
 const bcrypt = require("bcrypt");
 
 const pool = new Pool({
-  user: "postgres.raibduondbmojpspcjsz",
-  host: "aws-0-sa-east-1.pooler.supabase.com",
-  database: "postgres",
-  password: "lpECPmbDOhELPIrJ",
-  port: 6543,
-   ssl: {
-    rejectUnauthorized: false
-  }
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 const registrarUsuario = async (req, res) => {
