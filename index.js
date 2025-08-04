@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require("cors");
 const app = express();
+const PORT = process.env.PORT || 5000;
+
 
 const authRoutes = require("./routes/authroutes");
 const cardsRoutes = require("./routes/cards");
@@ -25,6 +27,6 @@ app.get("/home", (req, res) => {
     res.send("Hello World Express Js");
 });
 
-app.listen(5000, () => console.log("¡Servidor encendido en http://localhost:5000!"));
+app.listen(PORT, () => console.log(`¡Servidor encendido en http://localhost:${PORT}`));
 
 module.exports = app; 
